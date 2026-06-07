@@ -26,7 +26,7 @@
       --accent-glow: rgba(108, 99, 255, 0.25);
       --radius: 16px;
       --radius-sm: 10px;
-      --transition: 0.3s ease;
+      --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --font: 'Inter', -apple-system, sans-serif;
     }
     .light-mode {
@@ -57,6 +57,13 @@
       padding: 100px 24px;
       max-width: 1200px;
       margin: 0 auto;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
     }
     .section-header {
       text-align: center;
@@ -261,7 +268,7 @@
     }
     .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
 
-    /* ===== GALLERY / SLIDER ===== */
+    /* ===== GALLERY / SLIDER - 3D PERSPECTIVE ===== */
     .gallery .slider-wrapper {
       position: relative;
       overflow: hidden;
@@ -270,17 +277,18 @@
       border: 1px solid var(--border);
       margin: 0 auto;
       max-width: 1000px;
+      perspective: 1200px;
     }
     .slider-container {
       position: relative;
       width: 100%;
-      height: 500px;
+      height: 560px;
       overflow: hidden;
       cursor: grab;
     }
     .slider-track {
       display: flex;
-      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       height: 100%;
     }
     .slide {
@@ -291,21 +299,29 @@
       justify-content: center;
       position: relative;
       overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease;
     }
     .slide img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.2s ease;
+      transition: transform 0.3s ease;
+      transform-style: preserve-3d;
+    }
+    .slide:hover img {
+      transform: scale(1.05);
     }
     .slide .slide-caption {
       position: absolute;
       bottom: 24px;
       left: 24px;
+      right: 24px;
       background: rgba(0,0,0,0.6);
       padding: 12px 20px;
       border-radius: 12px;
       backdrop-filter: blur(8px);
+      transform: translateZ(30px);
     }
     .slide .slide-caption h3 { color: #fff; margin: 0; font-size: 1.1rem; }
     .slide .slide-caption p { color: #ccc; margin: 4px 0 0; font-size: 0.85rem; }
@@ -323,12 +339,12 @@
       cursor: pointer;
       z-index: 10;
       backdrop-filter: blur(4px);
-      transition: background 0.3s;
+      transition: all 0.3s;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .slider-btn:hover { background: rgba(108, 99, 255, 0.7); }
+    .slider-btn:hover { background: rgba(108, 99, 255, 0.8); transform: translateY(-50%) scale(1.1); }
     .slider-prev { left: 12px; }
     .slider-next { right: 12px; }
     .slider-dots {
@@ -341,14 +357,19 @@
       z-index: 10;
     }
     .slider-dots span {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.3);
       cursor: pointer;
       transition: all 0.3s;
+      border: 2px solid transparent;
     }
-    .slider-dots span.active { background: #fff; }
+    .slider-dots span.active {
+      background: var(--accent);
+      border-color: #fff;
+      transform: scale(1.2);
+    }
 
     /* ===== SKILLS ===== */
     .skills-grid {
@@ -363,16 +384,18 @@
       padding: 24px 16px;
       text-align: center;
       transition: all var(--transition);
+      transform-style: preserve-3d;
+      perspective: 800px;
     }
     .skill-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-4px) rotateX(5deg) rotateY(5deg);
       border-color: var(--accent);
       box-shadow: 0 8px 30px var(--accent-glow);
     }
-    .skill-card .icon { font-size: 2rem; margin-bottom: 8px; }
-    .skill-card h4 { font-size: 0.95rem; font-weight: 600; }
+    .skill-card .icon { font-size: 2rem; margin-bottom: 8px; transform: translateZ(15px); }
+    .skill-card h4 { font-size: 0.95rem; font-weight: 600; transform: translateZ(10px); }
 
-    /* ===== PROJECTS ===== */
+    /* ===== PROJECTS - 3D HOVER ===== */
     .projects-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -386,6 +409,8 @@
       transition: all var(--transition);
       position: relative;
       overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 1000px;
     }
     .project-card::before {
       content: '';
@@ -400,9 +425,9 @@
     }
     .project-card:hover::before { opacity: 1; }
     .project-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-4px) rotateX(3deg) rotateY(-3deg);
       border-color: var(--accent);
-      box-shadow: 0 8px 30px var(--accent-glow);
+      box-shadow: 0 12px 40px var(--accent-glow);
     }
     .project-tag {
       display: inline-block;
@@ -413,10 +438,11 @@
       font-size: 0.75rem;
       font-weight: 600;
       margin-bottom: 16px;
+      transform: translateZ(20px);
     }
-    .project-card h3 { font-size: 1.4rem; margin-bottom: 10px; }
-    .project-card p { color: var(--text2); font-size: 0.9rem; margin-bottom: 16px; }
-    .project-tech { display: flex; gap: 8px; flex-wrap: wrap; }
+    .project-card h3 { font-size: 1.4rem; margin-bottom: 10px; transform: translateZ(15px); }
+    .project-card p { color: var(--text2); font-size: 0.9rem; margin-bottom: 16px; transform: translateZ(10px); }
+    .project-tech { display: flex; gap: 8px; flex-wrap: wrap; transform: translateZ(12px); }
     .project-tech span {
       padding: 4px 12px;
       background: var(--bg);
@@ -436,8 +462,13 @@
       display: none;
       align-items: center;
       justify-content: center;
+      animation: fadeIn 0.3s ease;
     }
     .auth-overlay.open { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     .auth-modal {
       background: var(--card);
       border: 1px solid var(--border);
@@ -446,6 +477,11 @@
       width: 100%;
       max-width: 400px;
       position: relative;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
     .auth-close {
       position: absolute;
@@ -487,18 +523,6 @@
       color: var(--text2);
     }
     .auth-alt a { color: var(--accent2); }
-    
-    /* Google Sign-In Button */
-    .g-signin-wrapper {
-      display: flex;
-      justify-content: center;
-      margin: 16px 0 8px;
-    }
-    .g_id_signin {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
     .divider {
       display: flex;
       align-items: center;
@@ -513,6 +537,11 @@
       flex: 1;
       height: 1px;
       background: var(--border);
+    }
+    .g-signin-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 16px 0 8px;
     }
 
     /* ===== CHATBOT ===== */
@@ -535,7 +564,7 @@
       align-items: center;
       justify-content: center;
     }
-    .chat-toggle:hover { transform: scale(1.1); }
+    .chat-toggle:hover { transform: scale(1.1) rotate(10deg); }
     #chatPanel {
       position: fixed;
       bottom: 90px;
@@ -550,6 +579,7 @@
       flex-direction: column;
       box-shadow: 0 12px 48px rgba(0,0,0,0.4);
       overflow: hidden;
+      animation: slideUp 0.3s ease;
     }
     #chatPanel.open { display: flex; }
     .chat-header {
@@ -648,7 +678,7 @@
       .nav-links { display: none; }
       .hero h1 { font-size: 2.4rem; }
       .section-header h2 { font-size: 1.8rem; }
-      .slider-container { height: 320px; }
+      .slider-container { height: 360px; }
       .skills-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
       .projects-grid { grid-template-columns: 1fr; }
       #chatPanel { width: 300px; right: 12px; }
@@ -694,42 +724,58 @@
     </div>
   </section>
 
-  <!-- Gallery / Slider -->
-  <section id="slider" class="section gallery">
+  <!-- Gallery / Slider - 6 slides with 3D effects -->
+  <section id="slider" class="section">
     <div class="section-header">
       <h2>Portfolio Gallery</h2>
-      <p>Scroll to zoom · Drag to navigate · Arrow keys to switch</p>
+      <p>Scroll to zoom · Drag to navigate · Hover for 3D effect</p>
     </div>
     <div class="slider-wrapper">
       <div class="slider-container" id="sliderContainer">
         <div class="slider-track" id="sliderTrack">
-          <!-- Slide 1 -->
-          <div class="slide">
-            <img src="https://via.placeholder.com/1200x600/1a1a2e/e0e0e0?text=AI+Dashboard" alt="AI Dashboard" class="zoom-img">
+          <!-- Slide 1 - Your Pinterest Photo 1 -->
+          <div class="slide" data-tilt>
+            <img src="https://i.ibb.co/ns6y1Nhy/28e3e686b1fb6226f65b4a5847c73be7.jpg" alt="Design 1" class="zoom-img" style="object-fit:contain;background:#0a0c1a;">
+            <div class="slide-caption">
+              <h3>🎨 Creative Design</h3>
+              <p>Pinterest inspiration · 3D Art</p>
+            </div>
+          </div>
+          <!-- Slide 2 - Your Pinterest Photo 2 -->
+          <div class="slide" data-tilt>
+            <img src="https://i.ibb.co/6J7Qzbww/669d7204a7b59963fced0e66d35d137e-webp.webp" alt="Design 2" class="zoom-img" style="object-fit:contain;background:#0a0c1a;">
+            <div class="slide-caption">
+              <h3>🎨 Minimal Aesthetic</h3>
+              <p>Pinterest inspiration · Modern style</p>
+            </div>
+          </div>
+          <!-- Slide 3 - AI Dashboard -->
+          <div class="slide" data-tilt>
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=600&fit=crop" alt="AI Dashboard" class="zoom-img">
             <div class="slide-caption">
               <h3>AI Dashboard</h3>
               <p>React · D3.js · TensorFlow.js</p>
             </div>
           </div>
-          <!-- Slide 2 -->
-          <div class="slide">
-            <img src="https://via.placeholder.com/1200x600/16213e/ffffff?text=E-Commerce+Engine" alt="E-Commerce Engine" class="zoom-img">
+          <!-- Slide 4 - Code / Developer -->
+          <div class="slide" data-tilt>
+            <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=600&fit=crop" alt="Coding" class="zoom-img">
             <div class="slide-caption">
-              <h3>E-Commerce Engine</h3>
-              <p>Next.js · Stripe · PostgreSQL</p>
+              <h3>Full-Stack Development</h3>
+              <p>Modern web · APIs · Cloud</p>
             </div>
           </div>
-          <!-- Slide 3 -->
-          <div class="slide">
-            <img src="https://via.placeholder.com/1200x600/0f3460/e0e0e0?text=Cloud+Orchestrator" alt="Cloud Orchestrator" class="zoom-img">
+          <!-- Slide 5 - Abstract 3D -->
+          <div class="slide" data-tilt>
+            <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1200&h=600&fit=crop" alt="3D Abstract" class="zoom-img">
             <div class="slide-caption">
-              <h3>Cloud Orchestrator</h3>
-              <p>Docker · K8s · Terraform</p>
+              <h3>3D & Motion Design</h3>
+              <p>Creative visuals · Modern UI</p>
             </div>
           </div>
-          <!-- Slide 4 -->
-          <div class="slide">
-            <img src="https://via.placeholder.com/1200x600/533483/e0e0e0?text=Ilyas+Yare" alt="Ilyas Abdi Ali" class="zoom-img">
+          <!-- Slide 6 - Ilyas Profile -->
+          <div class="slide" data-tilt>
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=600&fit=crop" alt="Ilyas Abdi Ali" class="zoom-img">
             <div class="slide-caption">
               <h3>Ilyas Abdi Ali</h3>
               <p>📷 @ilyas_yare45 · 📞 +252 682390000</p>
@@ -801,19 +847,13 @@
       <button class="auth-close" onclick="closeAuth()">×</button>
       <h2>Login</h2>
       <p style="text-align:center;color:var(--text2);font-size:0.85rem;margin-bottom:20px;">Access your portfolio dashboard</p>
-      
-      <!-- Email/Password Login -->
       <div class="auth-error" id="authError">Invalid credentials</div>
       <label>Email</label>
       <input type="email" id="loginEmail" placeholder="your@email.com" />
       <label>Password</label>
       <input type="password" id="loginPassword" placeholder="••••••••" />
       <button class="btn btn-primary" onclick="handleLogin()">Login</button>
-      
-      <!-- Divider -->
       <div class="divider">or continue with</div>
-      
-      <!-- Google Sign-In Button -->
       <div class="g-signin-wrapper">
         <div id="g_id_onload"
           data-client_id="950088039383-i7buq07iqd6b3k8vqofefbhk4kl71bjm.apps.googleusercontent.com"
@@ -831,7 +871,6 @@
           data-width="300">
         </div>
       </div>
-
       <div class="auth-alt">Don't have an account? <a href="#">Register</a></div>
     </div>
   </div>
@@ -930,29 +969,17 @@
     function openAuth() { document.getElementById('authOverlay').classList.add('open'); }
     function closeAuth() { document.getElementById('authOverlay').classList.remove('open'); document.getElementById('authError').style.display = 'none'; }
     function handleLogin() {
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPassword').value;
-      if (email && pass) {
-        document.getElementById('authError').style.display = 'block';
-      } else {
-        document.getElementById('authError').style.display = 'block';
-      }
+      document.getElementById('authError').style.display = 'block';
     }
     document.getElementById('authOverlay').addEventListener('click', function(e) {
       if (e.target === this) closeAuth();
     });
 
-    // ===== GOOGLE SIGN-IN CALLBACK =====
+    // ===== GOOGLE SIGN-IN =====
     function handleGoogleCredential(response) {
-      // Decode the JWT credential
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      console.log('Google login success:', payload);
-      
-      // Show success message
       alert(`Welcome ${payload.name}! You're signed in with Google.`);
       closeAuth();
-      
-      // You can send payload.email, payload.name, payload.picture to your backend here
     }
 
     // ===== CHAT =====
@@ -1025,7 +1052,7 @@
       setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 500); }, 3500);
     }
 
-    // ===== GALLERY SLIDER WITH ZOOM & DRAG =====
+    // ===== GALLERY SLIDER =====
     const track = document.getElementById('sliderTrack');
     const slides = document.querySelectorAll('.slide');
     const prevBtn = document.getElementById('prevBtn');
@@ -1076,6 +1103,7 @@
       if (e.key === 'ArrowRight') { nextBtn.click(); }
     });
 
+    // Zoom with mouse wheel
     container.addEventListener('wheel', (e) => {
       e.preventDefault();
       const activeImg = slides[currentIndex].querySelector('.zoom-img');
@@ -1087,6 +1115,7 @@
       activeImg.style.transform = `scale(${zoomLevel})`;
     }, { passive: false });
 
+    // Drag to navigate
     container.addEventListener('mousedown', (e) => {
       isDragging = true;
       startX = e.clientX;
@@ -1125,7 +1154,57 @@
       }
     });
 
+    // ===== 3D MOUSE TILT EFFECT ON CARDS =====
+    document.querySelectorAll('.project-card, .skill-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -8;
+        const rotateY = ((x - centerX) / centerX) * 8;
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+      });
+    });
+
+    // ===== 3D TILT ON GALLERY SLIDES =====
+    document.querySelectorAll('.slide[data-tilt]').forEach(slide => {
+      slide.addEventListener('mousemove', (e) => {
+        const rect = slide.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -6;
+        const rotateY = ((x - centerX) / centerX) * 6;
+        slide.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+        const img = slide.querySelector('img');
+        if (img) img.style.transform = `scale(1.08) translateZ(20px)`;
+      });
+      slide.addEventListener('mouseleave', () => {
+        slide.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+        const img = slide.querySelector('img');
+        if (img) img.style.transform = 'scale(1)';
+      });
+    });
+
+    // ===== SMOOTH PAGE TRANSITIONS - Intersection Observer =====
+    const sections = document.querySelectorAll('.section');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.15 });
+
+    sections.forEach(section => observer.observe(section));
+
     console.log('Baro xirfadada loaded successfully.');
   </script>
 </body>
-    </html>
+</html>
