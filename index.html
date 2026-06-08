@@ -1,1 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marvel AI — Education & Coding</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #060610;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        a { text-decoration: none; color: inherit; }
 
+        /* ===== 3D ZOOM BACKGROUND ===== */
+        #bg3d {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; overflow: hidden;
+            perspective: 1000px;
+        }
+        #bg3d .layer {
+            position: absolute; top: -5%; left: -5%;
+            width: 110%; height: 110%;
+            background-size: cover; background-position: center;
+            opacity: 0;
+            transition: opacity 3s ease, transform 25s ease;
+            transform: scale(1);
+            will-change: transform, opacity;
+        }
+        #bg3d .layer.active {
+            opacity: 0.08;
+            transform: scale(1.2);
+        }
+        #bg3d .layer:nth-child(1) { background-image: url('https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=1920&h=1080&fit=crop'); }
+        #bg3d .layer:nth-child(2) { background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&h=1080&fit=crop'); }
+        #bg3d .layer:nth-child(3) { background-image: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1920&h=1080&fit=crop'); }
+        #bg3d .layer:nth-child(4) { background-image: url('https://images.unsplash.com/photo-1517292987719-0369a794ec0f?w=1920&h=1080&fit=crop'); }
+        #bg3d .layer:nth-child(5) { background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1920&h=1080&fit=crop'); }
+        #bg3d .layer:nth-child(6) { background-image: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&h=1080&fit=crop'); }
+
+        /* ===== FLOATING CODE PARTICLES ===== */
+        #particles {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: none; overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: rgba(240, 192, 64, 0.12);
+            animation: floatCode linear infinite;
+            white-space: nowrap;
+        }
+        @keyframes floatCode {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* ===== NAV ===== */
+        nav {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 40px;
+            background: rgba(6,6,16,0.85);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .logo { font-size: 1.5rem; font-weight: 900; color: #f0c040; letter-spacing: 2px; }
+        .logo span { color: #fff; font-weight: 300; }
+        .nav-links { display: flex; gap: 30px; list-style: none; }
+        .nav-links a {
+            color: #999; font-size: 0.75rem; transition: 0.3s;
+            text-transform: uppercase; letter-spacing: 2px; position: relative;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 0; height: 2px; background: #f0c040; transition: width 0.3s;
+        }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-links a:hover { color: #f0c040; }
+        .nav-right { display: flex; align-items: center; gap: 14px; }
+        .user-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(240,192,64,0.08); padding: 6px 18px 6px 6px;
+            border-radius: 50px; border: 1px solid rgba(240,192,64,0.08);
+        }
+        .user-badge .avatar {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: linear-gradient(135deg, #f0c040, #e0a030);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; color: #060610; font-size: 0.75rem;
+        }
+        .user-badge .name { color: #ccc; font-size: 0.8rem; }
+        .logout-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.06);
+            color: #666; padding: 6px 16px; border-radius: 25px;
+            cursor: pointer; font-size: 0.65rem; transition: 0.3s;
+            letter-spacing: 1px; text-transform: uppercase;
+        }
+        .logout-btn:hover { border-color: #e74c3c; color: #e74c3c; }
+
+        /* ===== HERO ===== */
+        #home {
+            position: relative; z-index: 2;
+            min-height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 100px 20px 60px;
+        }
+        .marvel-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(240,192,64,0.12), rgba(240,192,64,0.04));
+            color: #f0c040;
+            padding: 10px 28px; border-radius: 50px;
+            font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 24px;
+            border: 1px solid rgba(240,192,64,0.1);
+            animation: fadeUp 1s ease;
+        }
+        #home h1 {
+            font-size: 5rem; font-weight: 900; color: #fff;
+            margin-bottom: 16px; line-height: 1.05;
+            animation: fadeUp 1.2s ease;
+        }
+        #home h1 span { color: #f0c040; animation: pulseGlow 3s infinite; display: inline-block; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulseGlow {
+            0%,100% { text-shadow: 0 0 20px rgba(240,192,64,0.1); }
+            50% { text-shadow: 0 0 60px rgba(240,192,64,0.3); }
+        }
+        #home .tagline {
+            font-size: 1.3rem; color: #f0c040; margin-bottom: 8px;
+            animation: fadeUp 1.4s ease;
+            font-weight: 300; letter-spacing: 4px;
+        }
+        #home p { max-width: 560px; color: #999; font-size: 1rem; margin-bottom: 8px; animation: fadeUp 1.6s ease; }
+        #home .hero-sub { color: #666; font-style: italic; margin-bottom: 32px; animation: fadeUp 1.8s ease; }
+        .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; animation: fadeUp 2s ease; }
+        .hero-btns a {
+            padding: 16px 40px; border-radius: 50px; font-weight: 700;
+            transition: all 0.4s; display: inline-block; font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #f0c040, #e0a030); color: #060610; }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 20px 60px rgba(240,192,64,0.2); }
+        .btn-outline { border: 2px solid rgba(255,255,255,0.08); color: #ccc; }
+        .btn-outline:hover { border-color: #f0c040; color: #f0c040; transform: translateY(-3px); }
+
+        /* ===== SECTION ===== */
+        section { position: relative; z-index: 2; padding: 100px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title {
+            text-align: center; font-size: 2.8rem; font-weight: 900; color: #fff;
+            margin-bottom: 8px;
+        }
+        .section-title span { color: #f0c040; }
+        .section-sub {
+            text-align: center; color: #777; margin-bottom: 50px;
+            font-size: 0.9rem; letter-spacing: 2px;
+        }
+
+        /* ===== 3D ZOOM GALLERY ===== */
+        #gallery { text-align: center; }
+        .gallery-3d {
+            position: relative; overflow: hidden; border-radius: 24px;
+            height: 560px; margin-bottom: 20px;
+            background: #0a0a18;
+            border: 1px solid rgba(255,255,255,0.04);
+            perspective: 1000px;
+        }
+        .gallery-3d-track {
+            display: flex; height: 100%;
+            transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-style: preserve-3d;
+        }
+        .gallery-3d-slide {
+            min-width: 100%; height: 100%; position: relative; overflow: hidden;
+            transform: scale(0.92) rotateY(5deg);
+            opacity: 0.5;
+            transition: all 1s ease;
+            border-radius: 16px;
+        }
+        .gallery-3d-slide.active {
+            transform: scale(1) rotateY(0deg);
+            opacity: 1;
+        }
+        .gallery-3d-slide img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform 15s ease;
+        }
+        .gallery-3d-slide.active img { transform: scale(1.25); }
+        .gallery-3d-slide .overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 50px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            text-align: left;
+        }
+        .gallery-3d-slide .overlay h3 { color: #fff; font-size: 2rem; font-weight: 700; }
+        .gallery-3d-slide .overlay p { color: #bbb; font-size: 0.9rem; margin-top: 6px; }
+        .gallery-3d-controls {
+            display: flex; justify-content: center; gap: 16px; margin-top: 18px;
+        }
+        .gallery-3d-controls button {
+            background: rgba(26,26,46,0.6); border: 1px solid rgba(255,255,255,0.06);
+            color: #ddd; width: 56px; height: 56px; border-radius: 50%;
+            font-size: 1.3rem; cursor: pointer; transition: 0.3s;
+            backdrop-filter: blur(8px);
+        }
+        .gallery-3d-controls button:hover { border-color: #f0c040; color: #f0c040; transform: scale(1.12); }
+        .gallery-3d-dots { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+        .gallery-3d-dots span {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); cursor: pointer;
+            transition: all 0.4s;
+        }
+        .gallery-3d-dots span.active {
+            background: #f0c040;
+            width: 44px; border-radius: 6px;
+            box-shadow: 0 0 30px rgba(240,192,64,0.2);
+        }
+
+        /* ===== COURSES ===== */
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .course-card {
+            background: rgba(26,26,46,0.4); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 20px; padding: 32px;
+            text-align: left; transition: all 0.5s;
+            position: relative; overflow: hidden;
+        }
+        .course-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(240,192,64,0.03), transparent 60%);
+            opacity: 0; transition: opacity 0.5s;
+        }
+        .course-card:hover::before { opacity: 1; }
+        .course-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(240,192,64,0.12);
+            box-shadow: 0 20px 60px rgba(240,192,64,0.03);
+        }
+        .course-card .course-icon { font-size: 2.4rem; margin-bottom: 14px; }
+        .course-card h3 { color: #fff; font-size: 1.15rem; margin-bottom: 8px; }
+        .course-card .course-level {
+            display: inline-block; background: rgba(240,192,64,0.08); color: #f0c040;
+            padding: 3px 12px; border-radius: 20px; font-size: 0.6rem;
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .course-card p { color: #999; font-size: 0.85rem; line-height: 1.7; margin-bottom: 14px; }
+        .course-card .course-meta {
+            display: flex; gap: 16px; font-size: 0.75rem; color: #666;
+        }
+        .course-card .course-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* ===== SKILLS ===== */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .skill-card {
+            background: rgba(26,26,46,0.4); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 16px; padding: 24px 10px; text-align: center;
+            transition: all 0.4s; cursor: default;
+        }
+        .skill-card:hover {
+            transform: translateY(-6px) scale(1.05) rotateY(3deg);
+            border-color: rgba(240,192,64,0.15);
+            box-shadow: 0 16px 40px rgba(240,192,64,0.03);
+        }
+        .skill-card .icon { font-size: 2rem; margin-bottom: 8px; }
+        .skill-card h4 { color: #fff; font-size: 0.8rem; letter-spacing: 0.5px; }
+
+        /* ===== AI TUTOR ===== */
+        #ai-tutor-section {
+            border-top: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .ai-tutor-container {
+            background: rgba(26,26,46,0.4); backdrop-filter: blur(12px);
+            border-radius: 28px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .ai-tutor-header {
+            padding: 22px 28px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .ai-tutor-header h3 { color: #f0c040; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        .ai-tutor-header .status {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.7rem; color: #888;
+        }
+        .ai-tutor-header .status .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #4ade80; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .ai-tutor-body {
+            padding: 24px 28px; max-height: 450px; overflow-y: auto;
+        }
+        .ai-tutor-body .msg-bot {
+            background: rgba(255,255,255,0.04); padding: 14px 18px;
+            border-radius: 16px 16px 16px 4px; margin-bottom: 14px;
+            display: inline-block; max-width: 88%; font-size: 0.9rem;
+            color: #ccc; line-height: 1.6;
+        }
+        .ai-tutor-body .msg-bot .code-block {
+            background: #0a0a18; padding: 14px; border-radius: 12px;
+            margin: 10px 0; font-family: 'Courier New', monospace;
+            font-size: 0.8rem; color: #4ade80;
+            border: 1px solid rgba(255,255,255,0.04);
+            overflow-x: auto; white-space: pre-wrap;
+        }
+        .ai-tutor-body .msg-bot .hl { color: #f0c040; font-weight: 600; }
+        .ai-tutor-body .msg-user {
+            text-align: right; margin-bottom: 14px;
+        }
+        .ai-tutor-body .msg-user span {
+            background: rgba(240,192,64,0.08); color: #f0c040;
+            padding: 14px 18px; border-radius: 16px 16px 4px 16px;
+            display: inline-block; max-width: 88%; font-size: 0.9rem;
+        }
+        .ai-tutor-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            display: flex; gap: 10px;
+        }
+        .ai-tutor-footer input {
+            flex: 1; padding: 14px 20px; border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(42,42,62,0.4);
+            color: #fff; font-size: 0.9rem;
+        }
+        .ai-tutor-footer input:focus { outline: none; border-color: #f0c040; }
+        .ai-tutor-footer button {
+            background: linear-gradient(135deg, #f0c040, #e0a030);
+            color: #060610; border: none; width: 48px; height: 48px;
+            border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .ai-tutor-footer button:hover { transform: scale(1.1); }
+        .ai-tutor-footer .powered {
+            font-size: 0.6rem; color: #555; align-self: center;
+            letter-spacing: 1px;
+        }
+
+        /* ===== ADMIN DASHBOARD ===== */
+        #admin-section { display: none; }
+        #admin-section.active { display: block; }
+        .admin-dash {
+            background: rgba(26,26,46,0.5); backdrop-filter: blur(14px);
+            border-radius: 28px; padding: 44px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .admin-dash .dash-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; flex-wrap: wrap; gap: 14px;
+        }
+        .admin-dash .dash-header h2 { color: #f0c040; font-size: 1.5rem; }
+        .admin-dash .dash-header .badge {
+            background: rgba(240,192,64,0.08); color: #f0c040;
+            padding: 6px 18px; border-radius: 50px; font-size: 0.65rem;
+            letter-spacing: 2px; border: 1px solid rgba(240,192,64,0.08);
+        }
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+        }
+        .dash-card {
+            background: rgba(42,42,62,0.4); border-radius: 18px;
+            padding: 24px; border: 1px solid rgba(255,255,255,0.04);
+            text-align: center; transition: all 0.4s;
+        }
+        .dash-card:hover {
+            border-color: rgba(240,192,64,0.1);
+            transform: translateY(-4px);
+        }
+        .dash-card .stat {
+            font-size: 2rem; font-weight: 800; color: #f0c040;
+        }
+        .dash-card .label {
+            color: #888; font-size: 0.65rem; margin-top: 6px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            position: relative; z-index: 2;
+            text-align: center; padding: 50px 20px;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            color: #555; font-size: 0.8rem;
+        }
+        footer .social { margin-bottom: 14px; }
+        footer .social a { color: #888; margin: 0 14px; font-size: 0.85rem; transition: color 0.3s; }
+        footer .social a:hover { color: #f0c040; }
+        footer .marvel-credit {
+            font-size: 0.7rem; color: #444; margin-top: 8px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            nav { padding: 14px 20px; flex-wrap: wrap; gap: 8px; }
+            .nav-links { gap: 10px; flex-wrap: wrap; }
+            .nav-links a { font-size: 0.6rem; }
+            #home h1 { font-size: 2.6rem; }
+            .gallery-3d { height: 320px; }
+            .gallery-3d-slide .overlay h3 { font-size: 1.2rem; }
+            .gallery-3d-slide .overlay { padding: 24px; }
+            .section-title { font-size: 2rem; }
+            .courses-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 3D ZOOM BACKGROUND ===== -->
+    <div id="bg3d">
+        <div class="layer active"></div>
+        <div class="layer"></div>
+        <div class="layer"></div>
+        <div class="layer"></div>
+        <div class="layer"></div>
+        <div class="layer"></div>
+    </div>
+
+    <!-- ===== FLOATING CODE PARTICLES ===== -->
+    <div id="particles"></div>
+
+    <!-- ===== NAV ===== -->
+    <nav>
+        <div class="logo">✦ Marvel <span>AI</span></div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#courses">Courses</a></li>
+            <li><a href="#skills">Skills</a></li>
+            <li><a href="#ai-tutor-section">AI Tutor</a></li>
+            <li><a href="#admin-section">Dashboard</a></li>
+        </ul>
+        <div class="nav-right">
+            <div class="user-badge" id="userBadge">
+                <div class="avatar" id="userAvatar">M</div>
+                <span class="name" id="userName">Marvel</span>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- ===== HERO ===== -->
+    <section id="home">
+        <div class="marvel-badge">✦ Marvel AI Education Platform</div>
+        <h1>Learn <span>Code</span> with AI</h1>
+        <div class="tagline">Python · AI · ML · Web · Data Science</div>
+        <p><strong>Marvel AI</strong> — Your intelligent tutor for mastering coding and artificial intelligence.</p>
+        <p class="hero-sub">Built by Ilyas Abdi Ali · @ilyas_yare45</p>
+        <div class="hero-btns">
+            <a href="#ai-tutor-section" class="btn-primary">🤖 Start Learning with AI</a>
+            <a href="#courses" class="btn-outline">📚 Browse Courses</a>
+            <a href="#gallery" class="btn-outline">✨ 3D Gallery</a>
+        </div>
+    </section>
+
+    <!-- ===== 3D ZOOM GALLERY ===== -->
+    <section id="gallery">
+        <h2 class="section-title">3D <span>Gallery</span></h2>
+        <p class="section-sub">Cinematic zoom experience</p>
+        <div class="gallery-3d">
+            <div class="gallery-3d-track" id="galleryTrack">
+                <div class="gallery-3d-slide active">
+                    <img src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=1400&h=800&fit=crop" alt="AI" />
+                    <div class="overlay"><h3>🤖 Artificial Intelligence</h3><p>Neural networks · Deep learning · Computer vision</p></div>
+                </div>
+                <div class="gallery-3d-slide">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&h=800&fit=crop" alt="Data" />
+                    <div class="overlay"><h3>📊 Data Science</h3><p>Analytics · Visualization · Machine learning</p></div>
+                </div>
+                <div class="gallery-3d-slide">
+                    <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1400&h=800&fit=crop" alt="Code" />
+                    <div class="overlay"><h3>💻 Python Programming</h3><p>From basics to advanced algorithms</p></div>
+                </div>
+                <div class="gallery-3d-slide">
+                    <img src="https://images.unsplash.com/photo-1517292987719-0369a794ec0f?w=1400&h=800&fit=crop" alt="Cloud" />
+                    <div class="overlay"><h3>☁️ Cloud & DevOps</h3><p>Docker · Kubernetes · GCP · AWS</p></div>
+                </div>
+                <div class="gallery-3d-slide">
+                    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1400&h=800&fit=crop" alt="Security" />
+                    <div class="overlay"><h3>🔐 Cybersecurity</h3><p>Ethical hacking · Network security · Encryption</p></div>
+                </div>
+                <div class="gallery-3d-slide">
+                    <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1400&h=800&fit=crop" alt="Innovation" />
+                    <div class="overlay"><h3>🚀 Marvel Innovation</h3><p>Building the future with AI and code</p></div>
+                </div>
+            </div>
+        </div>
+        <div class="gallery-3d-dots" id="galleryDots"></div>
+        <div class="gallery-3d-controls">
+            <button onclick="slideGallery(currentSlide - 1)">❮</button>
+            <button onclick="slideGallery(currentSlide + 1)">❯</button>
+        </div>
+    </section>
+
+    <!-- ===== COURSES ===== -->
+    <section id="courses">
+        <h2 class="section-title">AI <span>Courses</span></h2>
+        <p class="section-sub">Learn with Marvel AI — structured paths for every level</p>
+        <div class="courses-grid">
+            <div class="course-card">
+                <div class="course-icon">🐍</div>
+                <h3>Python Fundamentals</h3>
+                <span class="course-level">Beginner</span>
+                <p>Master Python from scratch — variables, loops, functions, OOP, file handling, and real-world projects.</p>
+                <div class="course-meta">
+                    <span>📚 24 Lessons</span>
+                    <span>⏱ 12 Hours</span>
+                    <span>⭐ 4.9</span>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-icon">🧠</div>
+                <h3>Machine Learning</h3>
+                <span class="course-level">Intermediate</span>
+                <p>Supervised & unsupervised learning, regression, classification, clustering, model evaluation with scikit-learn.</p>
+                <div class="course-meta">
+                    <span>📚 18 Lessons</span>
+                    <span>⏱ 16 Hours</span>
+                    <span>⭐ 4.8</span>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-icon">🧬</div>
+                <h3>Deep Learning</h3>
+                <span class="course-level">Advanced</span>
+                <p>Neural networks, TensorFlow, Keras, CNNs for image recognition, RNNs for sequence data, and transformers.</p>
+                <div class="course-meta">
+                    <span>📚 20 Lessons</span>
+                    <span>⏱ 20 Hours</span>
+                    <span>⭐ 4.9</span>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-icon">📊</div>
+                <h3>Data Science</h3>
+                <span class="course-level">Intermediate</span>
+                <p>Pandas, NumPy, Matplotlib, Seaborn — data cleaning, exploration, visualization, and statistical analysis.</p>
+                <div class="course-meta">
+                    <span>📚 16 Lessons</span>
+                    <span>⏱ 14 Hours</span>
+                    <span>⭐ 4.7</span>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-icon">🌐</div>
+                <h3>Web Development</h3>
+                <span class="course-level">Beginner+</span>
+                <p>HTML, CSS, JavaScript, React, Node.js, APIs — build full-stack web applications from scratch.</p>
+                <div class="course-meta">
+                    <span>📚 22 Lessons</span>
+                    <span>⏱ 18 Hours</span>
+                    <span>⭐ 4.8</span>
+                </div>
+            </div>
+            <div class="course-card">
+                <div class="course-icon">🔐</div>
+                <h3>Cybersecurity</h3>
+                <span class="course-level">Intermediate</span>
+                <p>Network security, ethical hacking, cryptography, penetration testing, and secure coding practices.</p>
+                <div class="course-meta">
+                    <span>📚 14 Lessons</span>
+                    <span>⏱ 10 Hours</span>
+                    <span>⭐ 4.6</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SKILLS ===== -->
+    <section id="skills">
+        <h2 class="section-title">Tech <span>Stack</span></h2>
+        <p class="section-sub">Technologies we teach at Marvel AI</p>
+        <div class="skills-grid">
+            <div class="skill-card"><div class="icon">🐍</div><h4>Python</h4></div>
+            <div class="skill-card"><div class="icon">🤖</div><h4>AI / ML</h4></div>
+            <div class="skill-card"><div class="icon">🧠</div><h4>Deep Learning</h4></div>
+            <div class="skill-card"><div class="icon">📊</div><h4>Data Science</h4></div>
+            <div class="skill-card"><div class="icon">⚛️</div><h4>React</h4></div>
+            <div class="skill-card"><div class="icon">🟢</div><h4>Node.js</h4></div>
+            <div class="skill-card"><div class="icon">🗄️</div><h4>PostgreSQL</h4></div>
+            <div class="skill-card"><div class="icon">☁️</div><h4>Cloud</h4></div>
+            <div class="skill-card"><div class="icon">🔐</div><h4>Security</h4></div>
+            <div class="skill-card"><div class="icon">🐳</div><h4>Docker</h4></div>
+            <div class="skill-card"><div class="icon">📈</div><h4>TypeScript</h4></div>
+            <div class="skill-card"><div class="icon">🎨</div><h4>UI/UX</h4></div>
+        </div>
+    </section>
+
+    <!-- ===== AI TUTOR ===== -->
+    <section id="ai-tutor-section">
+        <h2 class="section-title">🤖 Marvel <span>AI Tutor</span></h2>
+        <p class="section-sub">Learn coding with your personal AI instructor</p>
+        <div class="ai-tutor-container">
+            <div class="ai-tutor-header">
+                <h3>🧠 Marvel AI — Education Mode</h3>
+                <div class="status">
+                    <span class="dot"></span>
+                    Ready to teach
+                </div>
+            </div>
+            <div class="ai-tutor-body" id="aiBody">
+                <div class="msg-bot">🎓 Welcome to <span class="hl">Marvel AI</span> — your personal coding tutor!</div>
+                <div class="msg-bot">📚 I can teach you:</div>
+                <div class="msg-bot">• <span class="hl">Python</span> — from zero to hero<br>• <span class="hl">AI & Machine Learning</span> — build intelligent models<br>• <span class="hl">Deep Learning</span> — neural networks with TensorFlow<br>• <span class="hl">Data Science</span> — analyze and visualize data<br>• <span class="hl">Web Development</span> — React, Node.js, APIs<br>• <span class="hl">Cybersecurity</span> — ethical hacking & defense</div>
+                <div class="msg-bot">💡 Try: <i>"Teach me Python lists"</i> or <i>"Explain neural networks"</i> or <i>"Write a web scraper"</i></div>
+            </div>
+            <div class="ai-tutor-footer">
+                <input type="text" id="aiInput" placeholder="Ask Marvel AI to teach you..." />
+                <button onclick="sendAi()">➤</button>
+                <span class="powered">AI by Marvel · Education</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ADMIN DASHBOARD ===== -->
+    <section id="admin-section">
+        <div class="admin-dash">
+            <div class="dash-header">
+                <h2>⚙️ Marvel Dashboard</h2>
+                <span class="badge">🔒 Admin Access</span>
+            </div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="stat" data-target="1247">0</div><div class="label">Students</div></div>
+                <div class="dash-card"><div class="stat" data-target="89">0</div><div class="label">Courses</div></div>
+                <div class="dash-card"><div class="stat" data-target="6">0</div><div class="label">Certificates</div></div>
+                <div class="dash-card"><div class="stat" data-target="342">0</div><div class="label">AI Sessions</div></div>
+                <div class="dash-card"><div class="stat" data-target="28">0</div><div class="label">Projects</div></div>
+                <div class="dash-card"><div class="stat" data-target="98">0</div><div class="label">Success %</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="social">
+            <a href="tel:+252682390000">📞 +252 682390000</a>
+            <a href="https://instagram.com/ilyas_yare45">📷 @ilyas_yare45</a>
+        </div>
+        <p>© 2026 Marvel AI — Education Platform by Ilyas Abdi Ali</p>
+        <div class="marvel-credit">✦ Learn · Code · Build with AI ✦</div>
+    </footer>
+
+    <script>
+        // ================================================================
+        // USER SESSION — Load from Login
+        // ================================================================
+        const stored = localStorage.getItem('baro_user');
+        let currentUser = null;
+        
+        if (stored) {
+            try {
+                currentUser = JSON.parse(stored);
+                if (currentUser.loggedIn) {
+                    document.getElementById('userName').textContent = currentUser.name || currentUser.email.split('@')[0];
+                    const avatar = document.getElementById('userAvatar');
+                    if (currentUser.picture) {
+                        avatar.innerHTML = `<img src="${currentUser.picture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`;
+                    } else {
+                        avatar.textContent = (currentUser.name || currentUser.email).charAt(0).toUpperCase();
+                    }
+                    document.getElementById('admin-section').classList.add('active');
+                    animateStats();
+                    
+                    setTimeout(() => {
+                        const body = document.getElementById('aiBody');
+                        body.innerHTML += `<div class="msg-bot">✅ Welcome <span class="hl">${currentUser.name || currentUser.email.split('@')[0]}</span>! I'm ready to teach you. What would you like to learn today?</div>`;
+                        body.scrollTop = body.scrollHeight;
+                    }, 500);
+                }
+            } catch(e) {
+                // fallback
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('baro_user');
+            window.location.href = 'login.html';
+        }
+
+        // ================================================================
+        // ANIMATE STATS
+        // ================================================================
+        function animateStats() {
+            document.querySelectorAll('.dash-card .stat').forEach(el => {
+                const target = parseInt(el.dataset.target);
+                let current = 0;
+                const increment = Math.max(1, Math.ceil(target / 40));
+                const interval = setInterval(() => {
+                    current += increment;
+                    if (current >= target) { current = target; clearInterval(interval); }
+                    el.textContent = current;
+                }, 25);
+            });
+        }
+
+        // ================================================================
+        // 3D BACKGROUND
+        // ================================================================
+        let bgIdx = 0;
+        const bgLayers = document.querySelectorAll('#bg3d .layer');
+        function nextBg() {
+            bgLayers.forEach(l => l.classList.remove('active'));
+            bgIdx = (bgIdx + 1) % bgLayers.length;
+            bgLayers[bgIdx].classList.add('active');
+        }
+        setInterval(nextBg, 5000);
+
+        // ================================================================
+        // FLOATING CODE PARTICLES
+        // ================================================================
+        const particlesContainer = document.getElementById('particles');
+        const codeSnippets = [
+            'print("Hello World")', 'def learn():', 'import ai', 'class Marvel:', 
+            'while True:', 'for i in range(10):', 'if __name__:', 'from sklearn',
+            'import tensorflow', 'model.fit()', 'def teach():', 'import pandas',
+            'return result', 'except:', 'raise ValueError', 'async def',
+            'await response', 'import numpy', 'def predict():', 'accuracy_score()'
+        ];
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+            p.style.left = Math.random() * 100 + '%';
+            p.style.fontSize = (Math.random() * 6 + 8) + 'px';
+            p.style.animationDuration = (Math.random() * 25 + 20) + 's';
+            p.style.animationDelay = (Math.random() * 25) + 's';
+            p.style.opacity = Math.random() * 0.3 + 0.05;
+            particlesContainer.appendChild(p);
+        }
+
+        // ================================================================
+        // 3D GALLERY
+        // ================================================================
+        let currentSlide = 0;
+        const track = document.getElementById('galleryTrack');
+        const slides = track.querySelectorAll('.gallery-3d-slide');
+        const dotsContainer = document.getElementById('galleryDots');
+
+        slides.forEach((_, i) => {
+            const dot = document.createElement('span');
+            if (i === 0) dot.classList.add('active');
+            dot.addEventListener('click', () => slideGallery(i));
+            dotsContainer.appendChild(dot);
+        });
+        const dots = dotsContainer.querySelectorAll('span');
+
+        function slideGallery(index) {
+            if (index < 0) index = slides.length - 1;
+            if (index >= slides.length) index = 0;
+            currentSlide = index;
+            track.style.transform = `translateX(-${index * 100}%)`;
+            slides.forEach((s, i) => {
+                s.classList.toggle('active', i === index);
+                s.style.transform = i === index ? 'scale(1) rotateY(0deg)' : 'scale(0.92) rotateY(5deg)';
+                s.style.opacity = i === index ? '1' : '0.5';
+            });
+            dots.forEach((d, i) => d.classList.toggle('active', i === index));
+        }
+        setInterval(() => slideGallery(currentSlide + 1), 5000);
+
+        // ================================================================
+        // AI TUTOR — Education & Coding Focused
+        // ================================================================
+        function sendAi() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const body = document.getElementById('aiBody');
+            body.innerHTML += `<div class="msg-user"><span>${msg}</span></div>`;
+
+            setTimeout(() => {
+                let reply = generateEducationalReply(msg);
+                body.innerHTML += `<div class="msg-bot">${reply}</div>`;
+                body.scrollTop = body.scrollHeight;
+            }, 700 + Math.random() * 500);
+
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+        }
+
+        function generateEducationalReply(msg) {
+            const lower = msg.toLowerCase();
+
+            if (lower.includes('hello') || lower.includes('hi') || lower.includes('salaam')) {
+                return '👋 Salaam! I\'m <span class="hl">Marvel AI</span>. I\'m here to teach you coding and AI. What would you like to learn today?';
+            }
+
+            if (lower.includes('python') && (lower.includes('teach') || lower.includes('learn') || lower.includes('lesson') || lower.includes('begin') || lower.includes('basic'))) {
+                return '🐍 <b>Python — Getting Started:</b>\n\nPython is beginner-friendly and powerful.\n\n<div class="code-block"># Your first Python program\nprint("Hello, Marvel AI!")</div>\n\n<div class="code-block"># Variables & data types\nname = "Student"\nage = 20\nscore = 95.5\nis_learning = True\n\nprint(f"{name} is {age} years old")</div>\n\n📖 <span class="hl">Key Concepts:</span>\n• Variables store data\n• Strings, integers, floats, booleans\n• f-strings for formatting\n\nWant to learn about lists and loops next?';
+            }
+
+            if (lower.includes('list') || (lower.includes('python') && (lower.includes('array') || lower.includes('loop')))) {
+                return '📋 <b>Python Lists & Loops:</b>\n\n<div class="code-block"># Creating a list\nfruits = ["apple", "banana", "cherry"]\n\n# Loop through list\nfor fruit in fruits:\n    print(fruit)\n\n# List comprehension\nsquares = [x**2 for x in range(10)]\nprint(squares)  # [0, 1, 4, 9, 16, ...]</div>\n\n<div class="code-block"># While loop\ncount = 0\nwhile count < 5:\n    print(f"Count: {count}")\n    count += 1</div>\n\n📖 Lists are ordered, mutable collections. Loops let you repeat actions. Try creating your own list!';
+            }
+
+            if (lower.includes('function') || lower.includes('def')) {
+                return '⚙️ <b>Python Functions:</b>\n\n<div class="code-block">def greet(name):\n    """Return a greeting message"""\n    return f"Hello, {name}!"\n\n# Call the function\nmessage = greet("Marvel")\nprint(message)</div>\n\n<div class="code-block">def add(a, b):\n    return a + b\n\nresult = add(10, 5)\nprint(f"Sum: {result}")</div>\n\n📖 <span class="hl">def</span> defines a function. <span class="hl">return</span> sends back a value. Functions make code reusable and organized.';
+            }
+
+            if (lower.includes('ai') || lower.includes('machine') || lower.includes('ml') || lower.includes('model')) {
+                return '🧠 <b>Machine Learning — Overview:</b>\n\nML teaches computers to learn from data.\n\n<div class="code-block">from sklearn.tree import DecisionTreeClassifier\n\n# Training data: [age, income]\nX = [[22, 30000], [35, 65000], [45, 95000]]\ny = ["no", "yes", "yes"]  # buys product?\n\nmodel = DecisionTreeClassifier()\nmodel.fit(X, y)\n\n# Predict\nprint(model.predict([[28, 45000]]))</div>\n\n📖 <span class="hl">Types of ML:</span>\n• Supervised — labeled data\n• Unsupervised — patterns in data\n• Reinforcement — learn from rewards\n\nWant me to explain neural networks?';
+            }
+
+            if (lower.includes('neural') || lower.includes('deep') || lower.includes('tensorflow') || lower.includes('network')) {
+                return '🧬 <b>Neural Networks — Fundamentals:</b>\n\n<div class="code-block">import tensorflow as tf\n\nmodel = tf.keras.Sequential([\n    tf.keras.layers.Dense(128, activation="relu"),\n    tf.keras.layers.Dense(64, activation="relu"),\n    tf.keras.layers.Dense(10, activation="softmax")\n])\n\nmodel.compile(optimizer="adam",\n              loss="sparse_categorical_crossentropy",\n              metrics=["accuracy"])\n\nprint("Model built! Ready for training.")</div>\n\n📖 <span class="hl">Layers</span> transform data. <span class="hl">Activation</span> adds non-linearity. <span class="hl">Training</span> adjusts weights. Deep learning powers image recognition, NLP, and more!';
+            }
+
+            if (lower.includes('data') || lower.includes('pandas') || lower.includes('analysis') || lower.includes('visualize')) {
+                return '📊 <b>Data Science with Pandas:</b>\n\n<div class="code-block">import pandas as pd\nimport matplotlib.pyplot as plt\n\n# Load data\ndf = pd.read_csv("data.csv")\nprint(df.head())\nprint(df.describe())\n\n# Filter\ndf_filtered = df[df["age"] > 25]\n\n# Plot\ndf["category"].value_counts().plot(kind="bar")\nplt.title("Distribution")\nplt.show()</div>\n\n📖 <span class="hl">Pandas</span> for data manipulation, <span class="hl">Matplotlib</span> for visualization. Data science turns raw data into insights!';
+            }
+
+            if (lower.includes('web') || lower.includes('react') || lower.includes('html') || lower.includes('javascript')) {
+                return '🌐 <b>Web Development — React Basics:</b>\n\n<div class="code-block">import React, { useState } from "react";\n\nfunction Counter() {\n    const [count, setCount] = useState(0);\n    \n    return (\n        <div>\n            <h1>Count: {count}</h1>\n            <button onClick={() => setCount(count + 1)}>\n                Increment\n            </button>\n        </div>\n    );\n}</div>\n\n📖 <span class="hl">React</span> builds UIs with components. <span class="hl">useState</span> manages dynamic data. Want to learn about APIs and backend?';
+            }
+
+            if (lower.includes('security') || lower.includes('hack') || lower.includes('cyber') || lower.includes('password')) {
+                return '🔐 <b>Cybersecurity — Password Hashing:</b>\n\n<div class="code-block">import hashlib\n\ndef secure_hash(password):\n    salt = "marvel_ai_salt_2026"\n    return hashlib.sha256((password + salt).encode()).hexdigest()\n\n# Never store plain text passwords!\nhashed = secure_hash("MySecurePass!") \nprint(f"Hashed: {hashed[:16]}...")</div>\n\n📖 <span class="hl">Never</span> store passwords in plain text. Use hashing + salt. <span class="hl">SHA-256</span> is industry standard. Always validate and sanitize user input!';
+            }
+
+            if (lower.includes('who') && (lower.includes('you') || lower.includes('marvel') || lower.includes('creator'))) {
+                return '🤖 I\'m <span class="hl">Marvel AI</span> — an education-focused AI tutor created by <span class="hl">Ilyas Abdi Ali</span>.\n\n🎓 <b>About the Creator:</b>\n• BSc Computer Science\n• AI/ML Engineer\n• Full-Stack Developer\n• Cybersecurity Professional\n📞 +252 682390000\n📷 @ilyas_yare45\n\nI\'m here to teach you coding, AI, and technology for free!';
+            }
+
+            if (lower.includes('thank')) {
+                return '🙌 You\'re welcome! Keep learning — <span class="hl">Marvel AI</span> is always here to help. What would you like to learn next?';
+            }
+
+            // Default
+            return '📖 <b>Marvel AI Education:</b> Let me help you with "' + msg.substring(0, 50) + '..."\n\n<div class="code-block"># Understanding your question\nquestion = """' + msg.substring(0, 60) + '"""\nprint(f"Learning about: {question}")\n\n# Remember:\ntips = ["Practice daily", "Build projects", "Ask questions"]\nfor tip in tips:\n    print(f"💡 {tip}")</div>\n\nCan you tell me more specifically what you\'d like to learn? I cover Python, AI, ML, web dev, data science, and cybersecurity!';
+        }
+
+        // Enter key
+        document.getElementById('aiInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendAi();
+        });
+    </script>
+</body>
+</html>
